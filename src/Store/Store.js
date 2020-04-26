@@ -1,11 +1,18 @@
-import { createStore, combineReducers } from 'redux';
+import { createStore, combineReducers, applyMiddleware } from 'redux';
+// Local Storage for Redux
 import { persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
-import {todos} from './TodosReducer';
+// Thunk
+import thunk from 'redux-thunk';
+import { composeWithDevTools } from 'redux-devtools-extension';
+// Custom Reducers
+import { todos } from './TodosReducer';
+import { isLoading } from './LoadingReducer';
 
 const reducers = {
   todos,
+  isLoading,
 };
 
 // creates consumable reducer forcreateStore
@@ -21,5 +28,8 @@ const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 export const configureStore = () => createStore(
   persistedReducer,
-  window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
+  composeWithDevTools(
+    applyMiddleware(thunk)
+  )
+  // window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
 );

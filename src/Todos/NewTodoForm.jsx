@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { connect } from 'react-redux';
-import { createTodo } from '../Store/Actions';
+// import { createTodo } from '../Store/Actions'; // Non-api
+import { addTodoRequest } from '../Todos/thunks';
 import './NewTodoForm.css';
 
 // ** arg1 todos from mapStateToProps pulled out of TodosReducer.js > Store.js
@@ -42,15 +43,13 @@ const NewTodoForm = ({ todos, onCreatePressed }) => {
 const mapStateToProps = (state) => ({
   todos: state.todos
 });
-// // can be simplified to---
-// const mapStateToProps = ({ todos }) => ({ todos });
 
 // ** arg1 dispatch will also be passed to the component
 // ** dispatch is a function that triggers actions the store will respond to
 // ** create methods here as props that internally call actions
 const mapDispatchToProps = (dispatch) => ({
-  // TODO - test passing in dispatch only, and have logic in COMPONEWNT, not outside below the fold
-  onCreatePressed: (text) => dispatch(createTodo(text))
+  // ** we just pass the text, the API handles id, isCompleted
+  onCreatePressed: (text) => dispatch(addTodoRequest(text))
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(NewTodoForm);

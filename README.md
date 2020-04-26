@@ -390,7 +390,7 @@ const rootReducer = combineReducers(reducers);
 const persistConfig = {
   key: 'root',
   storage, // defaults to localStorage on the web
-  stateReconciler: autoMergeLevel2 // Tells redux-persist how to reconcile intial + stored states
+  stateReconciler: autoMergeLevel2 // Tells redux-persist how to reconcile initial + stored states
 };
 // persistConfig - tells Redux how to save, where to store app data
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -447,6 +447,200 @@ export const connect(...)(TodoList);
 * Have a higher component connected to store, lower component to filter
 
 ## Adding Thunk
+* Redux-Thunk for doing async operations, doing API calls
+* Side Effect Libraries: Redux Thunk, Redux Saga, Redux Logic
+* Redux Saga is most popular, has highest learning curve
+
+### How Thunks work
+Regular Redux
+1. Components dispatch a Redux action
+2. Action goes to Reducer
+3. Reducer makes changes to the Store
+
+OR with Thunks
+1. Components dispatch a Thunk
+2. Thunk performs async operations
+3. Thunk dispatches its own Redux actions
+
+Traditional Redux API calls
+1. In componentDidMount, or useEffect hook
+2. On load of data, dispatch success or error action
+
+Thunks for API calls.
+* abstracting loading/error states out of component
+1. dispatch function instead of type and payload
+```jsx
+// redux
+dispatch({ type, payload });
+// thunk
+dispatch( async () => {...});
+// further thunk example
+async () => {
+  ...
+  dispatch(loadUserSuccess(user));
+  dispatch(loadVideos());
+}
+```
+
+### Adding Redux-Thunk
+* `redux-thunk` for thunks
+* `redux-devtools-extension` to add thunks to devtools
+* `@babel/runtime` to make async thunks work
+* `@babel/plugin-transform-runtime` dev version of @babel/runtime
+
+```bash
+npm install redux-thunk redux-devtools-extension @babel/runtime
+npm install --save-dev @babel/plugin-transform-runtime
+```
+
+In .babelrc
+* Add the plugin `@babel/plugin-transform-runtime`
+```
+{
+  "presets": ["@babel/preset-env", "@babel/preset-react"],
+  "plugins": ["@babel/plugin-transform-runtime"]
+}
+```
+
+In Store.js
+* add `applyMiddleware` to redux import
+* import thunk, composeWithDevTools
+* Adjust createStore to add composeWithDevTools, applyMiddleware, and thunk
+```jsx
+import { createStore, combineReducers, applyMiddleware } from 'redux';
+...
+import thunk from 'redux-thunk';
+import { composeWithDevTools } from 'redux-devtools-extension';
+...
+export const configureStore = () => createStore(
+  persistedReducer,
+  composeWithDevTools(
+    applyMiddleware(thunk)
+  )
+  // window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
+);
+...
+```
+
+--- demo server in sibling project `from-scratch-server`
+* install and start the server on port 8080
+```bash
+npm install && npm run start
+```
+
+Mock API is the following:
+* GET /todos
+* POST /todos
+* POST /todos/:id/completed
+* DELETE /todos/:id
+
+Create loading todos actions in /Store/Actions.js
+```js
+...
+export const LOAD_TODOS_IN_PROGRESS = 'LOAD_TODOS_IN_PROGRESS';
+export const LOAD_TODOS_SUCCESS = 'LOAD_TODOS_SUCCESS';
+export const LOAD_TODOS_FAILURE = 'LOAD_TODOS_FAILURE';
+...
+export const loadTodosInProgress = () => ({
+  type: LOAD_TODOS_IN_PROGRESS
+});
+export const loadTodosSuccess = (todos) => ({
+  type: LOAD_TODOS_SUCCESS,
+  payload: { todos }
+});
+export const loadTodosFailure = (error) => ({
+  type: LOAD_TODOS_FAILURE,
+  payload: { error }
+});
+```
+
+Create `Todos/thunks.js`, hook up to demo API
+* Do API calls with async await in try catch, dispatch actions of response/error
+```js
+import { loadTodosInProgress, loadTodosSuccess, loadTodosFailure } from '../Store/Actions';
+
+// Thunks passed dispatch and getState
+export const loadTodos = () => async (dispatch, getState) => {
+  try {
+    dispatch(loadTodosInProgress());
+    const response = await fetch('http://localhost:8008/todos');
+    const todos = await response.json();
+  
+    dispatch(loadTodosSuccess(todos));
+  } catch(error) {
+    dispatch(loadTodosFailure(error));
+  }
+}
+```
+
+* Add ANOTHER reducer to keep track of loading
+
+Add a new reducer - LoadingReducer.js
+```js
+import { LOAD_TODOS_IN_PROGRESS, LOAD_TODOS_SUCCESS, LOAD_TODOS_FAILURE } from './Actions';
+// job of this reducer is to return true or false based on actions in the app
+export const isLoading = (state = false, action) => {
+  const { type } = action;
+  switch(type) {
+    case LOAD_TODOS_IN_PROGRESS:
+      return true;
+    case LOAD_TODOS_SUCCESS:
+    case LOAD_TODOS_FAILURE:
+      return false;              
+    default: 
+      return state;
+  }
+}
+```
+
+Add new reducers to Store.js file
+```js
+...
+import { todos } from './TodosReducer';
+import { isLoading } from './LoadingReducer';
+
+const reducers = {
+  todos,
+  isLoading,
+};
+...
+```
+
+Listen for loading in TodoList component
+* Pull in isLoading reducer flag
+* Use `useEffect` to ... do API call...
+```jsx
+...
+import { loadTodos } from './thunks';
+...
+const TodoList = ({ todos = [], isLoading, ... startLoadingTodos }) => {
+  useEffect(() => {
+    startLoadingTodos();
+  }, []);
+...
+const mapDispatchToProps = (dispatch) => ({
+  ...
+  startLoadingTodos: () => dispatch(loadTodos())
+});
+...
+```
+
+* NOTE - the Actions can listened to in any reducer
+In TodosReducer, listen for the LOAD_TODOS actions
+```js
+    ...
+    case LOAD_TODOS_SUCCESS:
+      const { todos } = payload; // Get todos from payload
+      return todos;
+    case LOAD_TODOS_IN_PROGRESS:
+    case LOAD_TODOS_FAILURE:
+      return state;
+    ...
+```
+
+* Problem -- persist vs. thunk API call complexity
+* Note - app heavily refactored, see source code for complexity
+
 
 ## Adding Reselect
 
