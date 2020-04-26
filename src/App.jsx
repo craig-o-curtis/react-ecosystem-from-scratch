@@ -1,11 +1,13 @@
 import React from "react";
 import { hot } from 'react-hot-loader';
+// custom components
+import TodoList from './Todos/TodoList';
 import "./App.css";
 
 const App = () => {
   return (
     <div className="App">
-      <h1>Hello world!</h1>
+      <TodoList />
     </div>
   );
 };

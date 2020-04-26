@@ -216,6 +216,235 @@ export default hot(module)(App);
 ```
 
 ## Adding Redux
+The use of Redux now is largely to maintain existing code. New projects should really weigh React Hooks as they can solve the same global state management issue Redux aims to.
+### Parts of Redux
+1. Redux Store - immutable JSON object of application data `{...}`
+- Store data like user information, UI state, API load state
+
+2. Redux Actions - JSON objects consisting of type and payload `{ type, payload }`
+- Define events that happen in application
+- Ex: `USER_DATA_LOADED`, `MESSAGE_RECEIVED`, `FILTER_APPLIED`
+
+3. Redux Reducers - specify what happens to Redux Store when an action occurs 
+```
+...
+(action) => switch(action.type) {
+  case USER_DATA_LOADED: 
+    return {
+      ...state,
+      action.data
+    }
+}
+```
+- Forces unidirectional data flow, recreates new objects, arrays
+
+
+### Adding Redux to a Project
+#### Install Redux
+```bash
+npm install redux react-redux
+```
+
+#### Set up Store
+- Create a src/Store/Store.js
+```
+import {createStore, combineReducers} from 'redux';
+
+const reducers = {};
+
+const rootReducer = combineReducers(reducers); // creates consumable reducer forcreateStore
+
+export const configureStore = () => createStore(rootReducer);
+
+```
+
+- In index.js, wrap entire app in Provider from react-redux
+```
+...
+import { Provider } from 'react-redux';
+import { configureStore } from './Store/Store';
+...
+ReactDOM.render(
+  <Provider store={configureStore()}>
+    <App/>
+  </Provider>, 
+  document.getElementById('root')
+);
+...
+```
+
+#### Set up Actions
+- Create a src/Store/Actions.js file with an ACTION_TYPE and actionCreator:
+```
+// Action Type
+export const CREATE_TODO = 'CREATE_TODO';
+// Action Creator
+export const createTodo = (text) => ({
+  type: CREATE_TODO,
+  payload: { text }
+});
+
+// Action Type
+export const REMOVE_TODO = 'REMOVE_TODO';
+// Action Creator
+export const removeTodo = (text) => ({
+  type: CREATE_TODO,
+  payload: { text }
+});
+```
+
+
+#### Set up Reducers
+- Create src/Store/TodosReducers.js file
+```
+// ** Fired whenever any action in entire app is called
+import { CREATE_TODO, REMOVE_TODO } from './Actions';
+
+export default TodosReducer = (state = [], action) => {
+  const { type, payload } = action;
+
+  switch(type) {
+    case CREATE_TODO:
+      const { text } = payload;
+      const newTodo = {
+        text,
+        isCompleted: false,
+      }
+      return [...state, newTodo ];
+    case REMOVE_TODO:
+      const { text } = payload;
+      return [ ..state.filter(todo => todo.text !== text) ];
+    default: 
+      return state;
+  }
+}
+```
+
+- Add reducers to src/Store/Store.js
+```
+import { createStore, combineReducers } from 'redux';
+import TodosReducer from './TodosReducer';
+
+const reducers = {
+  TodosReducer,
+};
+
+// creates consumable reducer forcreateStore
+const rootReducer = combineReducers(reducers);
+
+export const configureStore = () => createStore(rootReducer);
+```
+
+#### Connecting Components to the Redux Store
+- import `connect` from `react-redux`
+- define `mapStateToProps`
+- wrap the exported component with `connect( mapStateToProps, mapDispatchToProps )( NewTodoForm )`
+- now the tedius part, define two functions, `mapStateToProps` and `mapDispatchToProps`
+- for `mapDispatchToProps`, import actions wtih `import { createTodo } from '../Store/Actions';`
+- WARNING - there are several layers of cognitive load
+- See NewTodoForm, TodoList for detailed example
+
+```
+// ** NewTodoForm.js
+...
+import { connect } from 'react-redux';
+import { createTodo } from 'actions';
+...
+const NewTodoForm = ({ todos, onCreatePressed }) => {
+...
+const mapStateToProps = (state) => {
+  return {
+    todos: state.todos
+  };
+}
+
+const mapDispatchToProps = (dispatch) => {outside below the fold
+  return {
+    onCreatePressed: (text) => dispatch(createTodo(text))
+  };
+}
+...
+export default connect( mapStateToProps, mapDispatchToProps)( NewTodoForm );
+```
+
+## Adding Redux Perist - save data on refreshes
+```bash
+npm install redux-persist
+```
+
+### Adjust Store.js
+```jsx
+import { createStore, combineReducers } from 'redux';
+import { persistReducer } from 'redux-persist';
+import storage from 'redux-persist/lib/storage';
+import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
+import {todos} from './TodosReducer';
+
+const reducers = {
+  todos,
+};
+
+// creates consumable reducer forcreateStore
+const rootReducer = combineReducers(reducers);
+// redux-persist
+const persistConfig = {
+  key: 'root',
+  storage, // defaults to localStorage on the web
+  stateReconciler: autoMergeLevel2 // Tells redux-persist how to reconcile intial + stored states
+};
+// persistConfig - tells Redux how to save, where to store app data
+const persistedReducer = persistReducer(persistConfig, rootReducer);
+
+export const configureStore = () => createStore(persistedReducer);
+```
+### Adjust index.js
+```jsx
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { Provider } from 'react-redux';
+import { persistStore } from 'redux-persist'; // redux-persist
+import { PersistGate } from 'redux-persist/lib/integration/react' // redux-persist
+import { configureStore } from './Store/Store';
+import App from './App';
+
+const store = configureStore();
+const persister = persistStore(store); // redux-persist
+
+ReactDOM.render(
+  <Provider store={store}>
+    <PersistGate loading={<>Loading...</>} persistor={persister}> // redux-persist
+      <App/>
+    </PersistGate>
+  </Provider>, 
+  document.getElementById('root')
+);
+```
+
+The app is storing the data at `persist:root` in localStorage.
+
+### Adding Redux Dev Tools
+Add the Chrome Redux Devtools.
+In Store.js, add the following
+```jsx
+...
+  createStore(
+    persistedReducer,
+    window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
+  )
+...
+```
+
+### Redux Best Practices
+* export connected for testing, and unconnected components for the app
+```jsx
+export const TodoList = ...
+export const connect(...)(TodoList);
+```
+
+* Keep Redux actions and async ops out of reducers - store is only for updating state
+
+* Think carefully about what components to connect - connecting makes component less reusable
+* Have a higher component connected to store, lower component to filter
 
 ## Adding Thunk
 
