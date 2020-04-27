@@ -1,11 +1,11 @@
 // ** Fired whenever any action in entire app is called
 import { 
-  CREATE_TODO, 
-  REMOVE_TODO, 
+  API_CREATED_TODO, 
+  API_REMOVED_TODO, 
   COMPLETE_TODO,
-  LOAD_TODOS_IN_PROGRESS,
-  LOAD_TODOS_SUCCESS,
-  LOAD_TODOS_FAILURE
+  API_LOADING_TODOS,
+  API_LOADED_TODOS_SUCCESS,
+  API_LOADED_TODOS_FAILURE
 } from './Actions';
 
 // ** Name after what part of state managing inside main reducer
@@ -13,35 +13,30 @@ export const todos = (state = [], action) => {
   const { type, payload } = action;
 
   switch(type) {
-    case LOAD_TODOS_IN_PROGRESS:
+    case API_LOADING_TODOS:
       return state;
-    case LOAD_TODOS_SUCCESS:
-      // Get todos from payload
+
+    case API_LOADED_TODOS_SUCCESS:
       const { todos } = payload;
       return [...todos];
-    case LOAD_TODOS_FAILURE:
+    
+    case API_LOADED_TODOS_FAILURE:
       return state;
-    case CREATE_TODO:
+    
+    case API_CREATED_TODO:
       const { todo } = payload;
 
       return [
         ...state,
         todo
       ]
-      // // Local non-=API implementation
-      // const { text } = payload;
-      // const newTodo = {
-      //   text,
-      //   isCompleted: false,
-      // }
-      // return [
-      //   ...state,
-      //   newTodo,
-      // ];
-    case REMOVE_TODO:
+    
+    case API_REMOVED_TODO:
+      const { todo: todoToRemove } = payload;
       return [
-        ...state.filter(todo => todo.text !== payload.text)
+        ...state.filter(todo => todo.id !== todoToRemove.id)
       ];
+    
     case COMPLETE_TODO:
       return state.map(todo => {
         return (todo.text === payload.text)
