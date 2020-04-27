@@ -6,6 +6,8 @@ To run this app locally:
 - run `npm install`
 - run `npm run dev`
 
+Sibling Backend app is at [https://github.com/craig-o-curtis/react-ecosystem-from-scratch-server](https://github.com/craig-o-curtis/react-ecosystem-from-scratch-server)
+
 This is documentation of how this project was set up. This steps can also be followed to set up a similar project from scratch.
 This project is a from-scratch React Ecosystem. It includes the following technologies:
 
