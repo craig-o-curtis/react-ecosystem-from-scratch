@@ -645,6 +645,35 @@ In TodosReducer, listen for the LOAD_TODOS actions
 
 
 ## Adding Reselect
+### Redux + Thunks General Review
+* Components  ->  Display data
+* Reducers    ->  Manage state
+* Thunks      ->  Handle side-effect logic
+
+### Selectors
+* Selectors are for getting pieces of state... like `useStateValue` in hooks...
+* Also for filtering, mapping, transforming data needed from state
+
+In `Todos/selectors.js`: 
+```js
+export const getTodosSelector = (state) => state.todos;
+export const getTodosLoadingSelector = (state) => state.isLoading;
+```
+
+And use these to "filter" state in TodosList.jsx
+```jsx
+...
+const mapStateToProps = (state) => {
+  return {
+    todos: getTodosSelector(state),
+    isLoading: getTodosLoadingSelector(state),
+  };
+};
+...
+```
+
+But now we can map our own reducers...
+
 
 ## Adding Styled Components
 

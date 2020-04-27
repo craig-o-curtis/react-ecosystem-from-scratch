@@ -5,6 +5,8 @@ import TodoListItem from './TodoListItem';
 // Thunks for API calls
 import { loadTodosRequest, removeTodoRequest, completeTodoRequest } from './thunks';
 import './TodoList.css';
+// Selectors
+import { getTodosSelector, getTodosLoadingSelector } from './selectors';
 
 const TodoList = ({ todos = [], isLoading, onRemovePressed, onCompletePressed, startLoadingTodos }) => {
   useEffect(() => {
@@ -30,7 +32,14 @@ const TodoList = ({ todos = [], isLoading, onRemovePressed, onCompletePressed, s
   return isLoading ? loadingMessage : content;
 }
 
-const mapStateToProps = ({ todos, isLoading }) => ({ todos, isLoading });
+// const mapStateToProps = ({ todos, isLoading }) => ({ todos, isLoading });
+
+const mapStateToProps = (state) => {
+  return {
+    todos: getTodosSelector(state),
+    isLoading: getTodosLoadingSelector(state),
+  };
+};
 
 const mapDispatchToProps = (dispatch) => ({
   // Action Creators

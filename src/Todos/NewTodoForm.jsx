@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { connect } from 'react-redux';
-// import { createTodo } from '../Store/Actions'; // Non-api
+// thunks
 import { addTodoRequest } from '../Todos/thunks';
+// selectors -- seem absolutely unnecessary at this point...
+import { getTodosSelector } from './selectors';
 import './NewTodoForm.css';
 
 // ** arg1 todos from mapStateToProps pulled out of TodosReducer.js > Store.js
@@ -40,8 +42,11 @@ const NewTodoForm = ({ todos, onCreatePressed }) => {
 // ** purpose is to grab piece of state this component needs
 // ** this is EXACTLY what useContext does out of the box without all of this complexity
 // ** since pulled in here, now can destructure this from this component props
+// const mapStateToProps = (state) => ({
+//   todos: state.todos
+// });
 const mapStateToProps = (state) => ({
-  todos: state.todos
+  todos: getTodosSelector(state)
 });
 
 // ** arg1 dispatch will also be passed to the component

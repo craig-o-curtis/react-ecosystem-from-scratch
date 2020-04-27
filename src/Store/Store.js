@@ -7,12 +7,10 @@ import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import thunk from 'redux-thunk';
 import { composeWithDevTools } from 'redux-devtools-extension';
 // Custom Reducers
-import { todos } from './TodosReducer';
-import { isLoading } from './LoadingReducer';
+import { todos } from './Reducers';
 
 const reducers = {
   todos,
-  isLoading,
 };
 
 // creates consumable reducer forcreateStore
