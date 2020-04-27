@@ -1,8 +1,8 @@
 // ** Fired whenever any action in entire app is called
 import { 
   API_CREATED_TODO, 
+  API_UPDATED_COMPLETED_TODO,
   API_REMOVED_TODO, 
-  COMPLETE_TODO,
   API_LOADING_TODOS,
   API_LOADED_TODOS_SUCCESS,
   API_LOADED_TODOS_FAILURE
@@ -37,9 +37,9 @@ export const todos = (state = [], action) => {
         ...state.filter(todo => todo.id !== todoToRemove.id)
       ];
     
-    case COMPLETE_TODO:
+    case API_UPDATED_COMPLETED_TODO:
       return state.map(todo => {
-        return (todo.text === payload.text)
+        return (todo.id === payload.todo.id)
           ? {...todo, isCompleted: true}
           : todo;
       });

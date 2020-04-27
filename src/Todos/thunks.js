@@ -1,5 +1,6 @@
 import { 
   apiCreatedTodo, 
+  apiUpdatedCompletedTodo,
   apiRemovedTodo,
   apiLoadingTodos, 
   apiLoadedTodosSuccess, 
@@ -12,7 +13,7 @@ export const exampleDisplayAlert = (text) => () => {
 }
 
 // Thunks passed dispatch and getState
-export const loadTodos = () => async (dispatch, getState) => {
+export const loadTodosRequest = () => async (dispatch, getState) => {
   try {
     dispatch(apiLoadingTodos());
     // do request to server
@@ -41,6 +42,20 @@ export const addTodoRequest = (text) => async (dispatch, getState) => {
     dispatch(exampleDisplayAlert(error));
   }
 };
+
+export const completeTodoRequest = (id) => async (dispatch, getState) => {
+  try {
+    const response = await fetch(`http://localhost:8080/todos/${id}/completed`, {
+      headers: { 'Content-Type': 'application/json' },
+      method: 'post',
+    });
+
+    const updatedTodo = await response.json();
+    dispatch(apiUpdatedCompletedTodo(updatedTodo));
+  } catch (error) {
+    dispatch(exampleDisplayAlert(error));
+  }
+}
 
 export const removeTodoRequest = (id) => async (dispatch, getState) => {
   try {
