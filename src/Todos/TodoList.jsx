@@ -6,9 +6,17 @@ import TodoListItem from './TodoListItem';
 import { loadTodosRequest, removeTodoRequest, completeTodoRequest } from './thunks';
 import './TodoList.css';
 // Selectors
-import { getTodosSelector, getTodosLoadingSelector } from './selectors';
+import { getTodosSelector, getTodosLoadingSelector, getIncompleteTodosSelector, getCompleteTodosSelector } from './selectors';
 
-const TodoList = ({ todos = [], isLoading, onRemovePressed, onCompletePressed, startLoadingTodos }) => {
+const TodoList = ({ 
+  // todos = [],
+  incompleteTodos = [], 
+  completeTodos = [], 
+  isLoading, 
+  onRemovePressed, 
+  onCompletePressed, 
+  startLoadingTodos 
+}) => {
   useEffect(() => {
     startLoadingTodos();
   }, []);
@@ -18,7 +26,18 @@ const TodoList = ({ todos = [], isLoading, onRemovePressed, onCompletePressed, s
   const content = (
     <div className="TodoList">
       <NewTodoForm />
-      {todos.map((todo, idx) => (
+      {incompleteTodos.length > 0 && (<h2>Incomplete Todos:</h2>)}
+      {incompleteTodos.map((todo, idx) => (
+        <TodoListItem 
+          key={`todo-key-${idx}`} 
+          todo={todo} 
+          onRemovePressed={onRemovePressed} 
+          onCompletePressed={onCompletePressed} 
+        />
+      ))}
+
+      {completeTodos.length > 0 && (<h2>Complete Todos:</h2>)}
+      {completeTodos.map((todo, idx) => (
         <TodoListItem 
           key={`todo-key-${idx}`} 
           todo={todo} 
@@ -36,7 +55,11 @@ const TodoList = ({ todos = [], isLoading, onRemovePressed, onCompletePressed, s
 
 const mapStateToProps = (state) => {
   return {
-    todos: getTodosSelector(state),
+    // ** prior to selectors
+    // todos: getTodosSelector(state),
+    // ** with reselect-selectors
+    incompleteTodos: getIncompleteTodosSelector(state),
+    completeTodos: getCompleteTodosSelector(state),
     isLoading: getTodosLoadingSelector(state),
   };
 };

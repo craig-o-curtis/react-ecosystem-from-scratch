@@ -13,6 +13,8 @@ const reducers = {
   todos,
 };
 
+console.log('blackbox thunk')
+console.log(thunk)
 // creates consumable reducer forcreateStore
 const rootReducer = combineReducers(reducers);
 // redux-persist
