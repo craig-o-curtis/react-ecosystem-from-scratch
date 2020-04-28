@@ -26,11 +26,6 @@ export const apiRemovedTodo = (todo) => ({
   payload: { todo }
 });
 
-// export const completeTodo = (text) => ({
-//   type: COMPLETE_TODO,
-//   payload: { text }
-// });
-
 // Thunk Action Creators
 export const apiLoadingTodos = () => ({
   type: API_LOADING_TODOS

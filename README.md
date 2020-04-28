@@ -2,11 +2,16 @@
 -- A non-CRA demo app from scratch diving into Babel, Webpack, Redux, Thunk, Reselect, and Styled Components --
 
 To run this app locally:
+* In this Repo, run
 - clone the repo
 - run `npm install`
 - run `npm run dev`
 
+
 Sibling Backend app is at [https://github.com/craig-o-curtis/react-ecosystem-from-scratch-server](https://github.com/craig-o-curtis/react-ecosystem-from-scratch-server)
+* In Backend app:
+- run `npm run start`
+
 
 This is documentation of how this project was set up. This steps can also be followed to set up a similar project from scratch.
 This project is a from-scratch React Ecosystem. It includes the following technologies:
@@ -44,10 +49,10 @@ node_modules/
 
 #### Install the following packages:
 
-- @babel/core
-- @babel/cli
-- @babel/preset-env // transforms ES6 to CommonJS
-- @babel/preset-react // deals with JSX
+- `@babel/core`
+- `@babel/cli`
+- `@babel/preset-env` // transforms ES6 to CommonJS
+- `@babel/preset-react` // deals with JSX
 
 ```bash
 npm install --save-dev @babel/core @babel/cli @babel/preset-env @babel/preset-react
@@ -68,7 +73,7 @@ touch .babelrc
 ```
 
 ### Install and setup React
-
+Install `react` and `react-dom`
 ```bash
 npm install react react-dom
 ```
@@ -115,12 +120,12 @@ const App = () => {
 
 #### Install the Webpack to dev dependencies:
 
-- webpack
-- webpack-cli
-- webpack-dev-server
-- style-loader
-- css-loader
-- babel-loader
+- `webpack`
+- `webpack-cli`
+- `webpack-dev-server`
+- `style-loader`
+- `css-loader`
+- `babel-loader`
 
 ```bash
 npm install --save-dev webpack webpack-cli webpack-dev-server style-loader css-loader babel-loader
@@ -191,7 +196,7 @@ module.exports = {
 
 ### Hot reloading of JS and JSX
 
-- Install react-hot-loader with `npm install --save-dev react-hot-loader`
+- Install `react-hot-loader` with `npm install --save-dev react-hot-loader`
 - in App.js, add the following:
 
 ```jsx
@@ -243,6 +248,9 @@ The use of Redux now is largely to maintain existing code. New projects should r
 
 ### Adding Redux to a Project
 #### Install Redux
+* `redux`
+* `react-redux`
+
 ```bash
 npm install redux react-redux
 ```
@@ -370,6 +378,7 @@ export default connect( mapStateToProps, mapDispatchToProps)( NewTodoForm );
 ```
 
 ## Adding Redux Perist - save data on refreshes
+* `redux-persist`
 ```bash
 npm install redux-persist
 ```
@@ -673,6 +682,7 @@ const mapStateToProps = (state) => {
 ```
 
 ### Reselect - to build more complex logic on existing selectors
+* `reselect`
 ```bash
 npm install reselect
 ```
@@ -710,8 +720,294 @@ export const getCompleteTodosSelector = createSelector(
 
 
 ## Adding Styled Components
+### Advantages of Styled Components over CSS
+1. 1 less file
+2. CSS in JS
+3. Pass props to decide styling instead of using classNames
+
+### Install
+* `styled-components`
+```bash
+npm install styled-components
+```
+
+Simple Example:
+```jsx
+...
+import styled from 'styled-components';
+...
+const BigRedText = styled.div`
+  font-size: 46px;
+  color: #F00;
+  text-align: center;
+  background-color: transparent;
+`;
+...
+<BigRedText>My Todos</BigRedText>
+...
+```
+
+In TodoList.jsx, can port the .css file over to:
+* Using Sc prefix to denote is a styled component
+* wraps at the top level of the component for this example
+```jsx
+...
+const ScTodoListWrapper = styled.div`
+  margin: 1rem auto;
+  max-width: 700px;
+  background: #fefef0;
+`;
+...
+const TodoList = ({...}) {
+  return (
+    <ScTodoListWrapper>...</ScTodoListWrapper>
+  );
+}
+...
+```
+
+Example of :hover:
+```jsx
+const ScButton = styled.button`
+  background-color: #ee2222;
+  &:hover {
+    opacity: 0.85;
+  }
+`;
+```
+
+Example of passing props in:
+```jsx
+...
+import styled, { css } from 'styled-components';
+...
+const ScTodoListItemWrapper = styled.div`
+  background: white;
+  color: black;
+
+  // Syntax 1 - multi-rule
+  ${props => 
+    props.isCompleted &&
+    css`
+      background: black;
+      color: lime;
+    `
+  }
+`;
+
+// extending that styled component
+const ScTodoListItemWrapperWithWarning = styled(ScTodoListItemWrapper)`
+  // Syntax 2 - single-rule
+  border-bottom: ${props => (new Date(props.createdAt) > new Date(Date.now() - 8640000 * 5)) ? 'none' : '5px solid red' };
+`;
+...
+const ScWrapper = todo.isCompleted ? ScTodoListItemWrapper : ScTodoListItemWrapperWithWarning;
+<ScWrapper createdAt={todo.createdAt}>...
+...
+```
 
 
+Apparent Problems with Styled Components
+1. Cannot use Sass or Less mixins, functions, variables
+2. Cannot define keyframe animations easily
+3. Cannot do body resets or scroll control without an App.css or index.css file to target html and body
+4. Must learn a new API, simple, though new
+
+## Unit Testing with Mocha and Chai
+Install the following packages:
+* `mocha`
+* `chai`
+* `@babel/register` // so tests can run modern code
+```bash
+npm install --save-dev mocha chai @babel/register
+```
+
+In package.json, adjust test script
+```json
+...
+  "test": "mocha \"src/**/*.test.js\" --require @babel/register --recursive"
+...
+```
+
+### Testing Redux
+* Testing Reducers is easy, since have not internal state to set up
+* Just define a current state and action, expect returns
+
+Example test - in Reducers.test.js
+```js
+import { expect } from 'chai';
+import { todos as TodosReducer, initialState } from './Reducers';
+import { 
+  API_CREATED_TODO,
+  API_LOADING_TODOS,
+  apiLoadingTodos 
+} from './Actions';
+
+describe('todos reducer', () => {
+  it(`adds new todo when ${API_CREATED_TODO} action is received`, () => {
+    // setup
+    const fakeTodo = { text: 'test1', isCompleted: false };
+    const fakeAction = {
+      type: API_CREATED_TODO,
+      payload: {
+        todo: fakeTodo
+      }
+    }
+    const fakeOriginalState = { ...initialState };
+    // expected and result
+    const expected = {
+      isLoading: false,
+      data: [fakeTodo]
+    }
+    // result
+    const result = TodosReducer(fakeOriginalState, fakeAction);
+    // test
+    expect( result ).to.deep.equal( expected );
+  });
+
+  /** MORE USEFUL - test the actual action creators **/
+  it(`sets loading to true, keeps staet with ${API_LOADING_TODOS}`, () => {
+    // setup
+    const realAction = apiLoadingTodos;
+    const realOriginalState = { ...initialState };
+    // expected
+    const expected = {
+      isLoading: true,
+      data: realOriginalState.data
+    }
+    // result
+    const result = TodosReducer(realOriginalState, realAction());
+    expect( result ).to.deep.equal( expected )
+  });
+});
+
+```
+
+### Testing Thunks
+Need more packages
+* `sinon` // to create a fake fn to pass in as dispatch, keeps track of what args was called with
+* `node-fetch`
+* `fetch-mock`
+
+Rules:
+1. Make sure thunks dispatch actions at right times
+2. Set up mock fetch correctly, not hitting api
+3. Use sinon spies to ensure called, called with
+
+```bash
+npm install --save-dev sinon node-fetch fetch-mock
+```
+
+In thunks.test.js
+```js
+import 'node-fetch';
+import fetchMock from 'fetch-mock';
+import { expect } from 'chai';
+import sinon from 'sinon';
+import { apiLoadingTodos, apiLoadedTodosSuccess } from '../Store/Actions';
+import { loadTodosRequest } from './thunks';
+
+describe(`loadTodosRequest thunk API call`, () => {
+  it('should dispatch correct success actions', async () => {
+    // ** spies
+    const fakeDispatch = sinon.spy();
+    // ** fake fetch
+    const fakeTodosReturnedFromApi = [{text:'1'},{text:'2'}];
+    // ** define what url will hit, with return response
+    fetchMock.get('http://localhost:8080/todos', fakeTodosReturnedFromApi);
+
+    // ** define actions
+    const expectedFirstAction = { ...apiLoadingTodos() };
+    const expectedSecondAction = { ...apiLoadedTodosSuccess(fakeTodosReturnedFromApi) };
+
+    // ** call thunk
+    await loadTodosRequest()(fakeDispatch);
+
+    // ** actual test - test dispatched actions in correct order
+    // ** .getCall(0) === the 1st call made to fakeDispatch
+    // ** .args[0] === the 1st arg passed during 1st call to fakeDispatch
+    expect(fakeDispatch.getCall(0).args[0]).to.deep.equal( expectedFirstAction )
+    expect(fakeDispatch.getCall(1).args[0]).to.deep.equal( expectedSecondAction )
+    // ** restore fetch back to original state
+    fetchMock.reset(); 
+  });
+  
+  it('should load actual data from server', () => {
+    
+  });
+
+});
+
+```
+
+### Testing Selectors
+* Just define relevant parts of state
+
+In selectors.test.js
+```js
+import { expect } from 'chai';
+import { getCompleteTodosSelector } from './selectors';
+
+// export const getCompleteTodosSelector = createSelector(
+//   getTodosSelector,
+//** only need to test this second part */
+//   (todos) => todos.filter(todo => todo.isCompleted)
+// );
+
+describe(`getCompleteTodosSelector`, () => {
+  it(`should return only completed todos`, () => {
+    // define the return value of getTodosSelector
+    const fakeTodos = [{text: 'test1', isCompleted: true},{text: 'test2', isCompleted: false}];
+    // expected
+    const expected = fakeTodos.filter(t => t.isCompleted);
+    // test
+    const result = getCompleteTodosSelector.resultFunc(fakeTodos);
+    expect( result ).to.deep.equal( expected );
+  });
+});
+```
+
+### Testing Styled Components
+* All we need to test is the logic inside
+* Redefine as exportable functions
+TodosListItem.jsx
+```jsx
+...
+export const getBorderStyleForDate = (startingDate, currentDate) => {
+  return startingDate > new Date(currentDate - 8640000 * 5) 
+    ? 'none' 
+    : '5px solid red';
+};
+...
+```
+
+In a sibling test file
+TodoListItem.test.js
+```js
+import { expect } from 'chai';
+import TodoListItem, { getBorderStyleForDate } from './TodoListItem';
+
+describe('TodoListItem component', () => {
+  describe('getBorderStyleForDate', () => {
+    it('should return none when date is less than 5 days ago', () => {
+      const mockStartingDate = new Date(Date.now() - 8640000 * 3)
+      const realCurrentDate = Date.now();
+      const expected = 'none';
+      const result = getBorderStyleForDate(mockStartingDate, realCurrentDate);
+      expect( result ).to.equal( expected );
+    });
+
+    it('should return a border when date is more than 5 days ago', () => {
+      const mockStartingDate = new Date(Date.now() - 8640000 * 6)
+      const realCurrentDate = Date.now();
+      const expected = '5px solid red';
+      const result = getBorderStyleForDate(mockStartingDate, realCurrentDate);
+      expect( result ).to.equal( expected );
+    });
+  });
+});
+
+```
 
 # About this demo app
 Apologies, this is yet another 2du app

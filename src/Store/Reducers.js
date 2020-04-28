@@ -9,7 +9,7 @@ import {
 } from './Actions';
 
 // This is to combine all the reducers....
-const initialState = {
+export const initialState = {
   isLoading: false,
   data: [],
 }

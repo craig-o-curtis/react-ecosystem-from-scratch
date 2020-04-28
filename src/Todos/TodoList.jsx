@@ -1,12 +1,30 @@
 import React, { useEffect } from 'react';
+// styled components
+import styled from 'styled-components';
+// redux
 import { connect } from 'react-redux';
 import NewTodoForm from './NewTodoForm';
 import TodoListItem from './TodoListItem';
 // Thunks for API calls
 import { loadTodosRequest, removeTodoRequest, completeTodoRequest } from './thunks';
-import './TodoList.css';
+
 // Selectors
-import { getTodosSelector, getTodosLoadingSelector, getIncompleteTodosSelector, getCompleteTodosSelector } from './selectors';
+import { getTodosLoadingSelector, getIncompleteTodosSelector, getCompleteTodosSelector } from './selectors';
+
+// Styled component
+// ` is a tag function
+const BigRedText = styled.div`
+  font-size: 46px;
+  color: #F00;
+  text-align: center;
+  background-color: transparent;
+`;
+
+const ScTodoListWrapper = styled.div`
+  margin: 1rem auto;
+  max-width: 700px;
+  background: #fefef0;
+`;
 
 const TodoList = ({ 
   // todos = [],
@@ -24,7 +42,8 @@ const TodoList = ({
   const loadingMessage = (<div>Loading todos...</div>);
 
   const content = (
-    <div className="TodoList">
+    <ScTodoListWrapper>
+      <BigRedText>My Todos</BigRedText>
       <NewTodoForm />
       {incompleteTodos.length > 0 && (<h2>Incomplete Todos:</h2>)}
       {incompleteTodos.map((todo, idx) => (
@@ -45,7 +64,7 @@ const TodoList = ({
           onCompletePressed={onCompletePressed} 
         />
       ))}
-    </div>
+    </ScTodoListWrapper>
   );
   
   return isLoading ? loadingMessage : content;
